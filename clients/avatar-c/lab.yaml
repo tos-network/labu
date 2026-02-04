@@ -1,0 +1,4 @@
+roles:
+  - "execution"
+  - "rpc"
+  - "consensus"
