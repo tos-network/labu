@@ -4,6 +4,16 @@ Lab is a multi-client conformance test framework for the TOS ecosystem. It build
 runs simulator containers that drive multiple client implementations through a common
 API, then aggregates results into a standard JSON report format.
 
+## Scenario/Expected Comparison
+
+Lab does not define scenarios. Simulators do.
+
+- **Scenarios** are delivered as **vectors** (JSON) produced by `tos-spec`.
+- **Simulators** execute vectors and assert expected results.
+- **Lab** only orchestrates containers and aggregates results.
+
+This aligns with the Hive model: simulator-owned assertions, harness-owned orchestration.
+
 ## Quick start
 
 ```bash

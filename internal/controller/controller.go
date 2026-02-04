@@ -376,7 +376,7 @@ func (c *Controller) SetClientVersions(names []string) {
 	for _, res := range c.results {
 		for _, name := range names {
 			if _, ok := res.ClientVersions[name]; !ok {
-				res.ClientVersions[name] = \"\"
+				res.ClientVersions[name] = ""
 			}
 		}
 	}
