@@ -35,6 +35,7 @@ ENV LAB_NETWORK=devnet
 
 WORKDIR /avatar
 COPY --from=builder /source/avatar/build/linux/gcc/x86_64/bin/avatar /usr/local/bin/avatar
+COPY --from=builder /source/avatar/build/linux/gcc/x86_64/bin/avatar_state_import /usr/local/bin/avatar_state_import
 COPY --from=builder /source/avatar/opt /avatar/opt
 COPY --from=builder /source/avatar/config /avatar/config
 
@@ -151,11 +152,25 @@ class Handler(BaseHTTPRequestHandler):
             return
 
         if self.path == "/state/load":
-            # No native state import in Avatar; accept empty state only.
-            if payload in ({}, {"accounts": {}}, {"pre_state": {}}):
-                self._json(200, {"success": True, "state_digest": state_digest()})
-            else:
-                self._json(501, {"success": False, "error": "state_load_unsupported"})
+            with proc_lock:
+                stop_avatar()
+                os.makedirs(STATE_DIR, exist_ok=True)
+                state_file = os.path.join(STATE_DIR, "pre_state.json")
+                with open(state_file, "w", encoding="utf-8") as f:
+                    json.dump(payload, f)
+                cmd = [
+                    "/usr/local/bin/avatar_state_import",
+                    "--state-json", state_file,
+                    "--dir-path", STATE_DIR,
+                    "--network", NETWORK,
+                ]
+                result = subprocess.run(cmd, capture_output=True, text=True)
+                start_avatar()
+                if result.returncode != 0:
+                    err = (result.stderr or result.stdout or "").strip()
+                    self._json(500, {"success": False, "error": "state_load_failed", "details": err})
+                    return
+            self._json(200, {"success": True, "state_digest": state_digest()})
             return
 
         if self.path == "/tx/execute":
