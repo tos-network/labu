@@ -61,7 +61,7 @@ func main() {
 	if len(vectors) == 0 {
 		suite.Add(labusim.TestSpec{
 			Name:        "consensus/skeleton",
-			Description: "No vectors found",
+			Description: "No runnable vectors (missing wire_hex or non-block inputs)",
 			Run:         func(t *labusim.T) {},
 		})
 		labusim.MustRunSuite(sim, suite)
@@ -183,9 +183,13 @@ func loadVectors(root string) ([]TestVector, error) {
 			}
 		}
 		for _, vec := range suite.TestVectors {
-			if vec.Input.Kind == "block" || vec.Input.Kind == "" {
-				out = append(out, vec)
+			if vec.Input.Kind != "block" && vec.Input.Kind != "" {
+				continue
 			}
+			if vec.Input.WireHex == "" {
+				continue
+			}
+			out = append(out, vec)
 		}
 		return nil
 	})
