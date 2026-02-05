@@ -51,9 +51,9 @@ func ClientList() []string {
 		return nil
 	}
 	parts := []string{}
-	for _, p := range strings.Split(raw, \",\") {
+	for _, p := range strings.Split(raw, ",") {
 		p = strings.TrimSpace(p)
-		if p != \"\" {
+		if p != "" {
 			parts = append(parts, p)
 		}
 	}

@@ -1,10 +1,15 @@
-FROM rust:1.86-bullseye AS builder
+FROM rust:latest AS builder
 
 ARG GIT_REPO=https://github.com/tos-network/tos
 ARG GIT_REF=main
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    clang cmake libclang-dev pkg-config git && rm -rf /var/lib/apt/lists/*
+    clang cmake libclang-dev pkg-config git protobuf-compiler libprotobuf-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+ENV PROTOC_INCLUDE=/usr/include
+
+RUN rustup toolchain install nightly --profile minimal && rustup default nightly
 
 WORKDIR /source
 RUN git clone --depth=1 --branch ${GIT_REF} ${GIT_REPO} /source/tos
