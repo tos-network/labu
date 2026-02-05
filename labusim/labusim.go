@@ -293,6 +293,7 @@ func (s *Sim) endTest(suiteID, testID int, pass bool, details string) error {
 }
 
 func (s *Sim) launchClient(suiteID, testID int, spec ClientTestSpec) (*Client, error) {
+	applyDefaultClientFiles(&spec)
 	buf := &bytes.Buffer{}
 	writer := multipart.NewWriter(buf)
 	cfg := map[string]interface{}{
@@ -332,6 +333,40 @@ func (s *Sim) launchClient(suiteID, testID int, spec ClientTestSpec) (*Client, e
 		return nil, err
 	}
 	return &Client{sim: s, SuiteID: suiteID, TestID: testID, ID: info.ID, IP: info.IP, Client: spec.Client}, nil
+}
+
+func applyDefaultClientFiles(spec *ClientTestSpec) {
+	if spec.Environment == nil {
+		spec.Environment = make(map[string]string)
+	}
+	if spec.Files == nil {
+		spec.Files = make(map[string]string)
+	}
+
+	vectorDir := VectorDir()
+	if vectorDir == "" {
+		return
+	}
+
+	accountsPath := filepath.Join(vectorDir, "accounts.json")
+	if _, err := os.Stat(accountsPath); err == nil {
+		if _, ok := spec.Files["accounts.json"]; !ok {
+			spec.Files["accounts.json"] = accountsPath
+		}
+		if _, ok := spec.Environment["LABU_ACCOUNTS_PATH"]; !ok {
+			spec.Environment["LABU_ACCOUNTS_PATH"] = "/labu-files/accounts.json"
+		}
+	}
+
+	genesisPath := filepath.Join(vectorDir, "genesis_state.json")
+	if _, err := os.Stat(genesisPath); err == nil {
+		if _, ok := spec.Files["genesis_state.json"]; !ok {
+			spec.Files["genesis_state.json"] = genesisPath
+		}
+		if _, ok := spec.Environment["LABU_GENESIS_STATE_PATH"]; !ok {
+			spec.Environment["LABU_GENESIS_STATE_PATH"] = "/labu-files/genesis_state.json"
+		}
+	}
 }
 
 func copyToPart(w io.Writer, path string) error {
