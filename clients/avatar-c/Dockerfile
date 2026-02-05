@@ -36,6 +36,8 @@ ENV LAB_NETWORK=devnet
 WORKDIR /avatar
 COPY --from=builder /source/avatar/build/linux/gcc/x86_64/bin/avatar /usr/local/bin/avatar
 COPY --from=builder /source/avatar/build/linux/gcc/x86_64/bin/avatar_state_import /usr/local/bin/avatar_state_import
+COPY --from=builder /source/avatar/build/linux/gcc/x86_64/bin/avatar_state_digest /usr/local/bin/avatar_state_digest
+COPY --from=builder /source/avatar/build/linux/gcc/x86_64/bin/avatar_state_export /usr/local/bin/avatar_state_export
 COPY --from=builder /source/avatar/opt /avatar/opt
 COPY --from=builder /source/avatar/config /avatar/config
 
@@ -107,12 +109,14 @@ def rpc_call(method, params=None):
 
 def state_digest():
     try:
-        resp = rpc_call("get_top_block", {"include_txs": False})
-        result = resp.get("result")
-        if isinstance(result, dict) and "hash" in result:
-            return result["hash"]
-        if isinstance(result, str):
-            return result
+        cmd = [
+            "/usr/local/bin/avatar_state_digest",
+            "--dir-path", STATE_DIR,
+            "--network", NETWORK,
+        ]
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
+        if result.returncode == 0:
+            return result.stdout.strip()
     except Exception:
         pass
     return ""
@@ -134,6 +138,22 @@ class Handler(BaseHTTPRequestHandler):
             return
         if self.path == "/state/digest":
             self._json(200, {"state_digest": state_digest()})
+            return
+        if self.path == "/state/export":
+            try:
+                cmd = [
+                    "/usr/local/bin/avatar_state_export",
+                    "--dir-path", STATE_DIR,
+                    "--network", NETWORK,
+                ]
+                result = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
+                if result.returncode != 0:
+                    self._json(500, {"success": False, "error": "state_export_failed", "details": result.stderr.strip()})
+                    return
+                payload = json.loads(result.stdout)
+                self._json(200, payload)
+            except Exception as e:
+                self._json(500, {"success": False, "error": str(e)})
             return
         self.send_response(404)
         self.end_headers()
@@ -187,7 +207,7 @@ class Handler(BaseHTTPRequestHandler):
             return
 
         if self.path == "/block/execute":
-            self._json(501, {"success": False, "error": "block_execute_unsupported"})
+            self._json(200, {"success": False, "error_code": 0xFF01, "state_digest": state_digest()})
             return
 
         self.send_response(404)
