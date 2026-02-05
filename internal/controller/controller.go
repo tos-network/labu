@@ -285,6 +285,16 @@ func (c *Controller) LaunchNode(suiteID, testID int, cfg ClientLaunchConfig, fil
 		env[k] = v
 	}
 	env["LABU_FILES_DIR"] = "/labu-files"
+	if _, ok := env["LABU_STATE_DIR"]; !ok {
+		env["LABU_STATE_DIR"] = "/state"
+	}
+	if _, ok := env["LABU_NETWORK"]; !ok {
+		if len(cfg.Networks) > 0 {
+			env["LABU_NETWORK"] = cfg.Networks[0]
+		} else {
+			env["LABU_NETWORK"] = "devnet"
+		}
+	}
 
 	mounts := []string{
 		fmt.Sprintf("%s:/labu-files:ro", nodeDir),

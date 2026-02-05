@@ -21,6 +21,9 @@ The client image must:
 - `LABU_FILES_DIR` path to mounted files (default: `/labu-files`)
 - `LABU_NETWORK` network name to boot
 - `LABU_LOGLEVEL` log level
+- `LABU_STATE_DIR` state directory (default: `/state`)
+- `LABU_GENESIS_STATE_PATH` optional genesis_state.json path (enables genesis loader)
+- `LABU_ACCOUNTS_PATH` optional accounts.json path (deterministic test keys)
 
 The simulator is responsible for passing these variables when launching a client.
 
