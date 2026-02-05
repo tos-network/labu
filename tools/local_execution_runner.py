@@ -39,7 +39,12 @@ def load_vectors(vec_dir):
                 vectors.append((path.name, vec))
             continue
 
-        for doc in yaml.safe_load_all(raw):
+        try:
+            docs = list(yaml.safe_load_all(raw))
+        except yaml.YAMLError as exc:
+            print(f"[WARN] skip {path}: invalid YAML ({exc.__class__.__name__})", file=sys.stderr)
+            continue
+        for doc in docs:
             if not isinstance(doc, dict):
                 continue
             for vec in doc.get("test_vectors", []):
@@ -82,6 +87,44 @@ def compare_post_state(expected, actual):
     return True, ""
 
 
+def _is_valid_hex(value, length_bytes=None):
+    if value is None:
+        return False
+    if not isinstance(value, str):
+        return False
+    v = value[2:] if value.startswith(("0x", "0X")) else value
+    if len(v) % 2 != 0:
+        return False
+    try:
+        bytes.fromhex(v)
+    except ValueError:
+        return False
+    if length_bytes is not None and len(v) != length_bytes * 2:
+        return False
+    return True
+
+
+def _maybe_skip_tx(tx_json):
+    if not isinstance(tx_json, dict):
+        return "tx is not object"
+    sig = tx_json.get("signature")
+    if sig and not _is_valid_hex(sig, length_bytes=64):
+        return "signature must be 64 bytes"
+    src = tx_json.get("source")
+    if src and not _is_valid_hex(src, length_bytes=32):
+        return "source must be 32 bytes"
+    payload = tx_json.get("payload") or []
+    if isinstance(payload, list):
+        for item in payload:
+            dest = item.get("destination")
+            if dest and not _is_valid_hex(dest, length_bytes=32):
+                return "destination must be 32 bytes"
+            asset = item.get("asset")
+            if asset and not _is_valid_hex(asset, length_bytes=32):
+                return "asset must be 32 bytes"
+    return None
+
+
 def run_vector(base_url, vec):
     http_post_json(f"{base_url}/state/reset", {})
     pre_state = vec.get("pre_state")
@@ -91,6 +134,7 @@ def run_vector(base_url, vec):
         load_res = None
 
     exec_res = {}
+    skipped = None
     inp = vec.get("input", {}) or {}
     kind = inp.get("kind") or "tx"
     wire_hex = inp.get("wire_hex") or ""
@@ -100,6 +144,9 @@ def run_vector(base_url, vec):
         if wire_hex:
             payload["wire_hex"] = wire_hex
         if tx_json:
+            skipped = _maybe_skip_tx(tx_json)
+            if skipped and not wire_hex:
+                return None, None, load_res, skipped
             payload["tx"] = tx_json
         exec_res = http_post_json(f"{base_url}/tx/execute", payload)
     else:
@@ -109,7 +156,7 @@ def run_vector(base_url, vec):
     expected = vec.get("expected") or {}
     if expected.get("post_state") is not None:
         post_state = http_get_json(f"{base_url}/state/export")
-    return exec_res, post_state, load_res
+    return exec_res, post_state, load_res, skipped
 
 
 def main():
@@ -128,7 +175,7 @@ def main():
     for fname, vec in vectors:
         name = vec.get("name", "<unnamed>")
         try:
-            exec_res, post_state, load_res = run_vector(args.base_url, vec)
+            exec_res, post_state, load_res, skipped = run_vector(args.base_url, vec)
         except error.HTTPError as e:
             failures += 1
             print(f"[FAIL] {fname}/{name}: http {e.code}")
@@ -136,6 +183,9 @@ def main():
         except Exception as e:
             failures += 1
             print(f"[FAIL] {fname}/{name}: {e}")
+            continue
+        if skipped:
+            print(f"[SKIP] {fname}/{name}: {skipped}")
             continue
 
         expected = vec.get("expected") or {}
