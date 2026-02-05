@@ -6,6 +6,8 @@ import sys
 from pathlib import Path
 from urllib import request, error
 
+import yaml
+
 
 def http_post_json(url, payload):
     data = json.dumps(payload).encode("utf-8")
@@ -23,12 +25,25 @@ def http_get_json(url):
 
 def load_vectors(vec_dir):
     vec_dir = Path(vec_dir)
-    files = sorted(p for p in vec_dir.rglob("*") if p.suffix == ".json")
+    files = sorted(
+        p
+        for p in vec_dir.rglob("*")
+        if p.suffix in {".json", ".yaml", ".yml"}
+    )
     vectors = []
     for path in files:
-        data = json.loads(path.read_text())
-        for vec in data.get("test_vectors", []):
-            vectors.append((path.name, vec))
+        raw = path.read_text()
+        if path.suffix == ".json":
+            data = json.loads(raw)
+            for vec in data.get("test_vectors", []):
+                vectors.append((path.name, vec))
+            continue
+
+        for doc in yaml.safe_load_all(raw):
+            if not isinstance(doc, dict):
+                continue
+            for vec in doc.get("test_vectors", []):
+                vectors.append((path.name, vec))
     return vectors
 
 
