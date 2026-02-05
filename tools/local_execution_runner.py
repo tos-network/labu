@@ -174,6 +174,9 @@ def main():
     failures = 0
     for fname, vec in vectors:
         name = vec.get("name", "<unnamed>")
+        if vec.get("runnable") is False:
+            print(f"[SKIP] {fname}/{name}: runnable=false")
+            continue
         try:
             exec_res, post_state, load_res, skipped = run_vector(args.base_url, vec)
         except error.HTTPError as e:
@@ -183,6 +186,9 @@ def main():
         except Exception as e:
             failures += 1
             print(f"[FAIL] {fname}/{name}: {e}")
+            continue
+        if vec.get("runnable") is False:
+            print(f"[SKIP] {fname}/{name}: runnable=false")
             continue
         if skipped:
             print(f"[SKIP] {fname}/{name}: {skipped}")
