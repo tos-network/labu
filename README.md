@@ -23,6 +23,32 @@ This aligns with the Hive model: simulator-owned assertions, harness-owned orche
 ./labu --sim tos/rpc --client tos-rust,avatar-c
 ```
 
+## Local (non-Docker) single-client run
+
+This path is for debugging on a Mac host without Docker. It runs the TOS conformance
+server locally and uses the lightweight runner to execute vectors.
+
+1. Build and start the conformance server:
+```bash
+cd ~/tos
+cargo build -p tos_daemon --bin conformance
+LABU_STATE_DIR=/tmp/labu-state \
+LABU_NETWORK=devnet \
+LABU_ACCOUNTS_PATH=~/tos-spec/vectors/accounts.json \
+./target/debug/conformance
+```
+
+2. Run vectors against the local server:
+```bash
+cd ~/labu
+python3 tools/local_execution_runner.py --vectors ~/tos-spec/vectors/execution
+```
+
+Notes:
+- Avoid `vectors/unmapped/*` (legacy payloads) when running locally.
+- For genesis-based loading, set `LABU_GENESIS_STATE_PATH` and provide a valid
+  `genesis_state.json` file.
+
 ## Repository layout
 
 ```
