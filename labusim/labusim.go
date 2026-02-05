@@ -367,6 +367,23 @@ func applyDefaultClientFiles(spec *ClientTestSpec) {
 			spec.Environment["LABU_GENESIS_STATE_PATH"] = "/labu-files/genesis_state.json"
 		}
 	}
+
+	if matches, err := filepath.Glob(filepath.Join(vectorDir, "*.json")); err == nil {
+		for _, path := range matches {
+			base := filepath.Base(path)
+			if base == "accounts.json" || base == "genesis_state.json" {
+				continue
+			}
+			if _, ok := spec.Files[base]; !ok {
+				spec.Files[base] = path
+			}
+			if base == "config.json" {
+				if _, ok := spec.Environment["LABU_CONFIG_PATH"]; !ok {
+					spec.Environment["LABU_CONFIG_PATH"] = "/labu-files/config.json"
+				}
+			}
+		}
+	}
 }
 
 func copyToPart(w io.Writer, path string) error {

@@ -24,6 +24,10 @@ The client image must:
 - `LABU_STATE_DIR` state directory (default: `/state`)
 - `LABU_GENESIS_STATE_PATH` optional genesis_state.json path (enables genesis loader)
 - `LABU_ACCOUNTS_PATH` optional accounts.json path (deterministic test keys)
+- `LABU_CONFIG_PATH` optional config.json path (if provided in vectors)
+
+When `LABU_VECTOR_DIR` is set, `labusim` will auto-mount `vectors/*.json` into
+`/labu-files` and set `LABU_CONFIG_PATH` if `config.json` exists.
 
 The simulator is responsible for passing these variables when launching a client.
 
