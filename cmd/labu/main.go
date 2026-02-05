@@ -8,10 +8,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/tos-network/lab/internal/controller"
-	"github.com/tos-network/lab/internal/docker"
-	"github.com/tos-network/lab/internal/results"
-	"github.com/tos-network/lab/internal/sim"
+	"github.com/tos-network/labu/internal/controller"
+	"github.com/tos-network/labu/internal/docker"
+	"github.com/tos-network/labu/internal/results"
+	"github.com/tos-network/labu/internal/sim"
 )
 
 func main() {

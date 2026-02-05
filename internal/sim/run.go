@@ -12,10 +12,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/tos-network/lab/internal/api"
-	"github.com/tos-network/lab/internal/controller"
-	"github.com/tos-network/lab/internal/docker"
-	"github.com/tos-network/lab/internal/results"
+	"github.com/tos-network/labu/internal/api"
+	"github.com/tos-network/labu/internal/controller"
+	"github.com/tos-network/labu/internal/docker"
+	"github.com/tos-network/labu/internal/results"
 )
 
 type Options struct {
@@ -40,7 +40,7 @@ func Run(opts Options) error {
 	}
 	rand.Seed(opts.RandomSeed)
 
-	if err := opts.DockerRunner.CreateNetwork("lab-net"); err != nil {
+	if err := opts.DockerRunner.CreateNetwork("labu-net"); err != nil {
 		return err
 	}
 
@@ -62,7 +62,7 @@ func Run(opts Options) error {
 
 	simImage := opts.SimulatorImage
 	if simImage == "" {
-		simImage = fmt.Sprintf("lab-sim-%s", sanitize(opts.Simulator))
+		simImage = fmt.Sprintf("labu-sim-%s", sanitize(opts.Simulator))
 		simDir := filepath.Join(opts.Workspace, "..", "simulators", opts.Simulator)
 		ctxDir, dockerfile := resolveBuildContext(simDir)
 		if err := opts.DockerRunner.Build(ctxDir, dockerfile, simImage, nil); err != nil {
@@ -78,7 +78,7 @@ func Run(opts Options) error {
 			continue
 		}
 		clientDir := filepath.Join(opts.Workspace, "..", "clients", client)
-		imageTag := fmt.Sprintf("lab-client-%s", client)
+		imageTag := fmt.Sprintf("labu-client-%s", client)
 		if err := opts.DockerRunner.Build(clientDir, "Dockerfile", imageTag, nil); err != nil {
 			log.Printf("client build failed: %s: %v", client, err)
 			continue
@@ -91,17 +91,17 @@ func Run(opts Options) error {
 	opts.Controller.SetClientVersions(opts.Clients)
 
 	env := map[string]string{
-		"LAB_SIMULATOR":    fmt.Sprintf("http://%s", addr),
-		"LAB_TEST_PATTERN": opts.LimitPattern,
-		"LAB_PARALLELISM":  fmt.Sprintf("%d", opts.Parallelism),
-		"LAB_RANDOM_SEED":  fmt.Sprintf("%d", opts.RandomSeed),
-		"LAB_LOGLEVEL":     fmt.Sprintf("%d", opts.LogLevel),
-		"LAB_CLIENTS":      join(opts.Clients),
+		"LABU_SIMULATOR":    fmt.Sprintf("http://%s", addr),
+		"LABU_TEST_PATTERN": opts.LimitPattern,
+		"LABU_PARALLELISM":  fmt.Sprintf("%d", opts.Parallelism),
+		"LABU_RANDOM_SEED":  fmt.Sprintf("%d", opts.RandomSeed),
+		"LABU_LOGLEVEL":     fmt.Sprintf("%d", opts.LogLevel),
+		"LABU_CLIENTS":      join(opts.Clients),
 	}
 
 	mounts := []string{}
 	if opts.VectorsDir != "" {
-		env["LAB_VECTOR_DIR"] = "/vectors"
+		env["LABU_VECTOR_DIR"] = "/vectors"
 		mounts = append(mounts, fmt.Sprintf("%s:/vectors:ro", opts.VectorsDir))
 	}
 
@@ -109,7 +109,7 @@ func Run(opts Options) error {
 		Image:   simImage,
 		Env:     env,
 		Mounts:  mounts,
-		Network: "lab-net",
+		Network: "labu-net",
 	})
 	if err != nil {
 		return err
@@ -123,7 +123,7 @@ func Run(opts Options) error {
 			}
 		}
 		_ = opts.DockerRunner.Remove(containerID)
-		_ = opts.DockerRunner.RemoveNetwork("lab-net")
+		_ = opts.DockerRunner.RemoveNetwork("labu-net")
 		_ = httpServer.Shutdown(context.Background())
 	}()
 

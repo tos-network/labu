@@ -13,7 +13,7 @@ import (
 
 	"gopkg.in/yaml.v3"
 
-	"github.com/tos-network/lab/labsim"
+	"github.com/tos-network/labu/labusim"
 )
 
 type VectorSuite struct {
@@ -53,10 +53,10 @@ type ClientResult struct {
 }
 
 func main() {
-	sim := labsim.New()
-	vectorDir := labsim.VectorDir()
+	sim := labusim.New()
+	vectorDir := labusim.VectorDir()
 	if vectorDir == "" {
-		panic("LAB_VECTOR_DIR is required for execution simulator")
+		panic("LABU_VECTOR_DIR is required for execution simulator")
 	}
 
 	vectors, err := loadVectors(vectorDir)
@@ -64,22 +64,22 @@ func main() {
 		panic(err)
 	}
 
-	suite := labsim.Suite{
+	suite := labusim.Suite{
 		Name:        "tos/execution",
 		Description: "Execution conformance suite",
 	}
 
-	clients := labsim.ClientList()
+	clients := labusim.ClientList()
 	if len(clients) == 0 {
-		panic("LAB_CLIENTS is empty")
+		panic("LABU_CLIENTS is empty")
 	}
 
 	for _, vec := range vectors {
 		vec := vec
-		suite.Add(labsim.TestSpec{
+		suite.Add(labusim.TestSpec{
 			Name:        "execution/" + vec.File + "/" + vec.Vector.Name,
 			Description: "Vector " + vec.Vector.Name,
-			Run: func(t *labsim.T) {
+			Run: func(t *labusim.T) {
 				if err := runVectorCase(t, vec.Vector, clients); err != nil {
 					t.Failf("%s: %v", vec.Vector.Name, err)
 				}
@@ -87,10 +87,10 @@ func main() {
 		})
 	}
 
-	labsim.MustRunSuite(sim, suite)
+	labusim.MustRunSuite(sim, suite)
 }
 
-func runVectorCase(t *labsim.T, vec TestVector, clients []string) error {
+func runVectorCase(t *labusim.T, vec TestVector, clients []string) error {
 	results := make(map[string]ClientResult)
 	for _, client := range clients {
 		res, err := runAgainstClient(t, client, vec)
@@ -119,8 +119,8 @@ func runVectorCase(t *labsim.T, vec TestVector, clients []string) error {
 	return compareResults(results, clients[0])
 }
 
-func runAgainstClient(t *labsim.T, clientName string, vec TestVector) (ClientResult, error) {
-	spec := labsim.ClientTestSpec{
+func runAgainstClient(t *labusim.T, clientName string, vec TestVector) (ClientResult, error) {
+	spec := labusim.ClientTestSpec{
 		Name:        "execution-" + vec.Name + "-" + clientName,
 		Description: "execute vector on client",
 		Client:      clientName,

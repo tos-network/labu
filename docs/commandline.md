@@ -3,7 +3,7 @@
 ## Command line
 
 ```bash
-./lab --sim tos/rpc --client tos-rust,avatar-c
+./labu --sim tos/rpc --client tos-rust,avatar-c
 ```
 
 ### Flags

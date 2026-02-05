@@ -1,4 +1,4 @@
-package labsim
+package labusim
 
 import (
 	"bytes"
@@ -17,10 +17,10 @@ import (
 )
 
 const (
-	EnvSimulator   = "LAB_SIMULATOR"
-	EnvTestPattern = "LAB_TEST_PATTERN"
-	EnvClients     = "LAB_CLIENTS"
-	EnvVectorDir   = "LAB_VECTOR_DIR"
+	EnvSimulator   = "LABU_SIMULATOR"
+	EnvTestPattern = "LABU_TEST_PATTERN"
+	EnvClients     = "LABU_CLIENTS"
+	EnvVectorDir   = "LABU_VECTOR_DIR"
 )
 
 type Sim struct {

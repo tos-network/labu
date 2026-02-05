@@ -2,26 +2,26 @@
 
 ## Simulators
 
-Simulators are Dockerized programs that drive clients via the Lab simulation API.
+Simulators are Dockerized programs that drive clients via the Labu simulation API.
 They live under `simulators/` and must include a `Dockerfile`.
 
 ### Build Context Override
 
-If a simulator needs access to shared modules (e.g. `labsim`), add a
+If a simulator needs access to shared modules (e.g. `labusim`), add a
 `lab_context.txt` file next to its Dockerfile. The file should contain a relative
 path to the build context root.
 
-Lab exposes the API URL to the simulator via `LAB_SIMULATOR`.
+Labu exposes the API URL to the simulator via `LABU_SIMULATOR`.
 Optional environment variables:
 
-- `LAB_TEST_PATTERN` regex filter for suites/tests
-- `LAB_PARALLELISM` integer concurrency
-- `LAB_RANDOM_SEED` integer random seed
-- `LAB_LOGLEVEL` 0-5 log level
+- `LABU_TEST_PATTERN` regex filter for suites/tests
+- `LABU_PARALLELISM` integer concurrency
+- `LABU_RANDOM_SEED` integer random seed
+- `LABU_LOGLEVEL` 0-5 log level
 
 ## Simulation API
 
-Lab implements the simulation API endpoints:
+Labu implements the simulation API endpoints:
 
 - `POST /testsuite`
 - `DELETE /testsuite/{suite}`

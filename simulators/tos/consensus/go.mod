@@ -1,7 +1,7 @@
-module github.com/tos-network/lab/simulators/tos/consensus
+module github.com/tos-network/labu/simulators/tos/consensus
 
 go 1.22
 
-require github.com/tos-network/lab v0.0.0
+require github.com/tos-network/labu v0.0.0
 
-replace github.com/tos-network/lab => ../../..
+replace github.com/tos-network/labu => ../../..

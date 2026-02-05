@@ -22,8 +22,8 @@ FROM debian:bullseye-slim
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates curl && rm -rf /var/lib/apt/lists/*
 
-ENV LAB_STATE_DIR=/state
-ENV LAB_RPC_PORT=8080
+ENV LABU_STATE_DIR=/state
+ENV LABU_RPC_PORT=8080
 
 WORKDIR /tos
 COPY --from=builder /source/tos/target/release/conformance /usr/local/bin/tos_conformance

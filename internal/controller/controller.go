@@ -13,8 +13,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/tos-network/lab/internal/docker"
-	"github.com/tos-network/lab/internal/results"
+	"github.com/tos-network/labu/internal/docker"
+	"github.com/tos-network/labu/internal/results"
 	"gopkg.in/yaml.v3"
 )
 
@@ -124,7 +124,7 @@ func (c *Controller) loadClients() {
 			continue
 		}
 		name := entry.Name()
-		yamlPath := filepath.Join(root, name, "lab.yaml")
+		yamlPath := filepath.Join(root, name, "labu.yaml")
 		meta := map[string]interface{}{}
 		if b, err := os.ReadFile(yamlPath); err == nil {
 			_ = yaml.Unmarshal(b, &meta)
@@ -262,7 +262,7 @@ func (c *Controller) LaunchNode(suiteID, testID int, cfg ClientLaunchConfig, fil
 	// Build image
 	imageTag := imageOverride
 	if imageTag == "" {
-		imageTag = fmt.Sprintf("lab-client-%s", cfg.Client)
+		imageTag = fmt.Sprintf("labu-client-%s", cfg.Client)
 		if err := c.docker.Build(clientDef.Dir, "Dockerfile", imageTag, nil); err != nil {
 			return NodeInfo{}, err
 		}
@@ -284,23 +284,23 @@ func (c *Controller) LaunchNode(suiteID, testID int, cfg ClientLaunchConfig, fil
 	for k, v := range cfg.Environment {
 		env[k] = v
 	}
-	env["LAB_FILES_DIR"] = "/lab-files"
+	env["LABU_FILES_DIR"] = "/labu-files"
 
 	mounts := []string{
-		fmt.Sprintf("%s:/lab-files:ro", nodeDir),
+		fmt.Sprintf("%s:/labu-files:ro", nodeDir),
 	}
 
 	containerID, err := c.docker.Run(docker.RunConfig{
 		Image:   imageTag,
 		Env:     env,
 		Mounts:  mounts,
-		Network: "lab-net",
+		Network: "labu-net",
 	})
 	if err != nil {
 		return NodeInfo{}, err
 	}
 
-	ip, _ := c.docker.InspectIP("lab-net", containerID)
+	ip, _ := c.docker.InspectIP("labu-net", containerID)
 	node := &Node{
 		ID:             containerID,
 		ClientName:     cfg.Client,
@@ -444,7 +444,7 @@ func saveUpload(fh *multipart.FileHeader) (string, error) {
 	}
 	defer f.Close()
 
-	tmp, err := os.CreateTemp("", "lab-upload-*")
+	tmp, err := os.CreateTemp("", "labu-upload-*")
 	if err != nil {
 		return "", err
 	}

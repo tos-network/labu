@@ -1,4 +1,4 @@
-module github.com/tos-network/lab
+module github.com/tos-network/labu
 
 go 1.22
 

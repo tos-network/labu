@@ -12,7 +12,7 @@ import (
 
 	"gopkg.in/yaml.v3"
 
-	"github.com/tos-network/lab/labsim"
+	"github.com/tos-network/labu/labusim"
 )
 
 type VectorSuite struct {
@@ -41,39 +41,39 @@ type ExecResult struct {
 }
 
 func main() {
-	sim := labsim.New()
-	vectorDir := labsim.VectorDir()
+	sim := labusim.New()
+	vectorDir := labusim.VectorDir()
 	vectors, err := loadVectors(vectorDir)
 	if err != nil {
 		panic(err)
 	}
 
-	suite := labsim.Suite{
+	suite := labusim.Suite{
 		Name:        "tos/consensus",
 		Description: "Consensus conformance suite",
 	}
 
-	clients := labsim.ClientList()
+	clients := labusim.ClientList()
 	if len(clients) == 0 {
-		panic("LAB_CLIENTS is empty")
+		panic("LABU_CLIENTS is empty")
 	}
 
 	if len(vectors) == 0 {
-		suite.Add(labsim.TestSpec{
+		suite.Add(labusim.TestSpec{
 			Name:        "consensus/skeleton",
 			Description: "No vectors found",
-			Run:         func(t *labsim.T) {},
+			Run:         func(t *labusim.T) {},
 		})
-		labsim.MustRunSuite(sim, suite)
+		labusim.MustRunSuite(sim, suite)
 		return
 	}
 
 	for _, vec := range vectors {
 		vec := vec
-		suite.Add(labsim.TestSpec{
+		suite.Add(labusim.TestSpec{
 			Name:        "consensus/" + vec.Name,
 			Description: vec.Description,
-			Run: func(t *labsim.T) {
+			Run: func(t *labusim.T) {
 				results := make(map[string]ExecResult)
 				for _, client := range clients {
 					res, err := runAgainstClient(t, client, vec)
@@ -99,11 +99,11 @@ func main() {
 		})
 	}
 
-	labsim.MustRunSuite(sim, suite)
+	labusim.MustRunSuite(sim, suite)
 }
 
-func runAgainstClient(t *labsim.T, clientName string, vec TestVector) (ExecResult, error) {
-	spec := labsim.ClientTestSpec{
+func runAgainstClient(t *labusim.T, clientName string, vec TestVector) (ExecResult, error) {
+	spec := labusim.ClientTestSpec{
 		Name:        "consensus-" + vec.Name + "-" + clientName,
 		Description: "execute block vector on client",
 		Client:      clientName,

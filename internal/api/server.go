@@ -8,8 +8,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/tos-network/lab/internal/controller"
-	"github.com/tos-network/lab/internal/results"
+	"github.com/tos-network/labu/internal/controller"
+	"github.com/tos-network/labu/internal/results"
 )
 
 type Server struct {

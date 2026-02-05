@@ -11,7 +11,7 @@ import (
 
 	"gopkg.in/yaml.v3"
 
-	"github.com/tos-network/lab/labsim"
+	"github.com/tos-network/labu/labusim"
 )
 
 type VectorSuite struct {
@@ -31,19 +31,19 @@ type TestVector struct {
 }
 
 func main() {
-	sim := labsim.New()
-	clients := labsim.ClientList()
+	sim := labusim.New()
+	clients := labusim.ClientList()
 	if len(clients) == 0 {
-		panic("LAB_CLIENTS is empty")
+		panic("LABU_CLIENTS is empty")
 	}
 
-	vectorDir := labsim.VectorDir()
+	vectorDir := labusim.VectorDir()
 	vectors, err := loadVectors(vectorDir)
 	if err != nil {
 		panic(err)
 	}
 
-	suite := labsim.Suite{
+	suite := labusim.Suite{
 		Name:        "tos/rpc",
 		Description: "RPC conformance suite (health + vectors)",
 	}
@@ -51,11 +51,11 @@ func main() {
 	if len(vectors) == 0 {
 		for _, client := range clients {
 			cname := client
-			suite.AddClient(labsim.ClientTestSpec{
+			suite.AddClient(labusim.ClientTestSpec{
 				Name:        fmt.Sprintf("%s/health", cname),
 				Description: "Health endpoint should respond",
 				Client:      cname,
-				Run: func(t *labsim.T, c *labsim.Client) {
+				Run: func(t *labusim.T, c *labusim.Client) {
 					exit, _, stderr, err := c.Exec([]string{"curl", "-fsS", "http://127.0.0.1:8080/health"})
 					if err != nil || exit != 0 {
 						t.Failf("health check failed: %v %s", err, stderr)
@@ -63,7 +63,7 @@ func main() {
 				},
 			})
 		}
-		labsim.MustRunSuite(sim, suite)
+		labusim.MustRunSuite(sim, suite)
 		return
 	}
 
@@ -71,11 +71,11 @@ func main() {
 		vec := vec
 		for _, client := range clients {
 			cname := client
-			suite.AddClient(labsim.ClientTestSpec{
+			suite.AddClient(labusim.ClientTestSpec{
 				Name:        fmt.Sprintf("rpc/%s/%s", vec.Name, cname),
 				Description: vec.Description,
 				Client:      cname,
-				Run: func(t *labsim.T, c *labsim.Client) {
+				Run: func(t *labusim.T, c *labusim.Client) {
 					rpcURL := vec.Input.RPCURL
 					if rpcURL == "" {
 						rpcURL = "http://127.0.0.1:8080/json_rpc"
@@ -95,7 +95,7 @@ func main() {
 		}
 	}
 
-	labsim.MustRunSuite(sim, suite)
+	labusim.MustRunSuite(sim, suite)
 }
 
 func loadVectors(root string) ([]TestVector, error) {

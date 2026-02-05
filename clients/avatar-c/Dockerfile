@@ -29,9 +29,9 @@ ENV TZ=UTC
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates curl python3 && rm -rf /var/lib/apt/lists/*
 
-ENV LAB_STATE_DIR=/state
-ENV LAB_RPC_PORT=8080
-ENV LAB_NETWORK=devnet
+ENV LABU_STATE_DIR=/state
+ENV LABU_RPC_PORT=8080
+ENV LABU_NETWORK=devnet
 
 WORKDIR /avatar
 COPY --from=builder /source/avatar/build/linux/gcc/x86_64/bin/avatar /usr/local/bin/avatar
@@ -59,10 +59,10 @@ import time
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.request import Request, urlopen
 
-STATE_DIR = os.environ.get("LAB_STATE_DIR", "/state")
-RPC_PORT = int(os.environ.get("LAB_RPC_PORT", "8080"))
-NETWORK = os.environ.get("LAB_NETWORK", "devnet")
-AVATAR_PORT = int(os.environ.get("LAB_AVATAR_PORT", "8081"))
+STATE_DIR = os.environ.get("LABU_STATE_DIR", "/state")
+RPC_PORT = int(os.environ.get("LABU_RPC_PORT", "8080"))
+NETWORK = os.environ.get("LABU_NETWORK", "devnet")
+AVATAR_PORT = int(os.environ.get("LABU_AVATAR_PORT", "8081"))
 
 if not STATE_DIR.endswith("/"):
     STATE_DIR += "/"
