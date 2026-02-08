@@ -149,6 +149,22 @@ def run_vector(base_url, vec):
                 return None, None, load_res, skipped
             payload["tx"] = tx_json
         exec_res = http_post_json(f"{base_url}/tx/execute", payload)
+    elif kind == "block":
+        payload = {"txs": []}
+        txs = inp.get("txs") or []
+        if not isinstance(txs, list) or not txs:
+            return None, None, load_res, "block.txs missing or empty"
+        for item in txs:
+            if not isinstance(item, dict):
+                return None, None, load_res, "block.txs entry must be object"
+            item_wire = item.get("wire_hex") or ""
+            item_tx = item.get("tx")
+            if item_tx:
+                skipped = _maybe_skip_tx(item_tx)
+                if skipped and not item_wire:
+                    return None, None, load_res, skipped
+            payload["txs"].append({"wire_hex": item_wire, "tx": item_tx})
+        exec_res = http_post_json(f"{base_url}/block/execute", payload)
     else:
         exec_res = http_get_json(f"{base_url}/state/digest")
 
