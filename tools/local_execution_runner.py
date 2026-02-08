@@ -165,6 +165,36 @@ def run_vector(base_url, vec):
                     return None, None, load_res, skipped
             payload["txs"].append({"wire_hex": item_wire, "tx": item_tx})
         exec_res = http_post_json(f"{base_url}/block/execute", payload)
+    elif kind == "chain":
+        blocks = inp.get("blocks") or []
+        if not isinstance(blocks, list) or not blocks:
+            return None, None, load_res, "chain.blocks missing or empty"
+        payload = {"blocks": []}
+        for b in blocks:
+            if not isinstance(b, dict):
+                return None, None, load_res, "chain.blocks entry must be object"
+            out_block = {
+                "id": b.get("id") or "",
+                "parents": b.get("parents") or [],
+                "height": b.get("height"),
+                "timestamp_ms": b.get("timestamp_ms"),
+                "txs": [],
+            }
+            txs = b.get("txs") or []
+            if not isinstance(txs, list):
+                return None, None, load_res, "chain block txs must be list"
+            for item in txs:
+                if not isinstance(item, dict):
+                    return None, None, load_res, "chain block txs entry must be object"
+                item_wire = item.get("wire_hex") or ""
+                item_tx = item.get("tx")
+                if item_tx:
+                    skipped = _maybe_skip_tx(item_tx)
+                    if skipped and not item_wire:
+                        return None, None, load_res, skipped
+                out_block["txs"].append({"wire_hex": item_wire, "tx": item_tx})
+            payload["blocks"].append(out_block)
+        exec_res = http_post_json(f"{base_url}/chain/execute", payload)
     else:
         exec_res = http_get_json(f"{base_url}/state/digest")
 
