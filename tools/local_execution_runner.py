@@ -149,6 +149,11 @@ def run_vector(base_url, vec):
                 return None, None, load_res, skipped
             payload["tx"] = tx_json
         exec_res = http_post_json(f"{base_url}/tx/execute", payload)
+    elif kind == "tx_roundtrip":
+        if not wire_hex:
+            return None, None, load_res, "tx_roundtrip missing wire_hex"
+        payload = {"wire_hex": wire_hex}
+        exec_res = http_post_json(f"{base_url}/tx/roundtrip", payload)
     elif kind == "block":
         payload = {"txs": []}
         txs = inp.get("txs") or []

@@ -154,10 +154,15 @@ func runAgainstClient(t *labusim.T, clientName string, vec TestVector) (ClientRe
 	if wireHex == "" {
 		wireHex = vec.Transaction.WireHex
 	}
-	if kind == "tx" && wireHex == "" {
-		return ClientResult{}, fmt.Errorf("tx vector missing wire_hex")
+	if (kind == "tx" || kind == "tx_roundtrip") && wireHex == "" {
+		return ClientResult{}, fmt.Errorf("%s vector missing wire_hex", kind)
 	}
-	if wireHex != "" || vec.Input.Tx != nil {
+	if kind == "tx_roundtrip" {
+		payload := map[string]interface{}{"wire_hex": wireHex}
+		if err := postJSON(baseURL+"/tx/roundtrip", payload, &execRes); err != nil {
+			return ClientResult{}, fmt.Errorf("tx roundtrip: %w", err)
+		}
+	} else if wireHex != "" || vec.Input.Tx != nil {
 		payload := map[string]interface{}{}
 		if wireHex != "" {
 			payload["wire_hex"] = wireHex
