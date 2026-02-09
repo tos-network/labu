@@ -138,6 +138,10 @@ def run_vector(base_url, vec):
     inp = vec.get("input", {}) or {}
     kind = inp.get("kind") or "tx"
     wire_hex = inp.get("wire_hex") or ""
+    rpc = inp.get("rpc")
+    # RPC vectors use `input.rpc` and typically omit `input.kind`.
+    if rpc and kind == "tx" and not wire_hex and not inp.get("tx"):
+        kind = "rpc"
     tx_json = inp.get("tx")
     if kind == "tx":
         payload = {}
@@ -200,6 +204,10 @@ def run_vector(base_url, vec):
                 out_block["txs"].append({"wire_hex": item_wire, "tx": item_tx})
             payload["blocks"].append(out_block)
         exec_res = http_post_json(f"{base_url}/chain/execute", payload)
+    elif kind == "rpc":
+        if not isinstance(rpc, dict) or not rpc:
+            return None, None, load_res, "rpc missing input.rpc object"
+        exec_res = http_post_json(f"{base_url}/json_rpc", rpc)
     else:
         exec_res = http_get_json(f"{base_url}/state/digest")
 
@@ -246,12 +254,24 @@ def main():
             continue
 
         expected = vec.get("expected") or {}
+        inp = vec.get("input", {}) or {}
+        is_rpc = isinstance(inp.get("rpc"), dict) and bool(inp.get("rpc"))
         if args.dump:
             if load_res is not None:
                 print(f"[DUMP] {fname}/{name}: state_load={json.dumps(load_res, sort_keys=True)}")
             print(f"[DUMP] {fname}/{name}: exec_res={json.dumps(exec_res, sort_keys=True)}")
             if post_state is not None:
                 print(f"[DUMP] {fname}/{name}: post_state={json.dumps(post_state, sort_keys=True)}")
+
+        if is_rpc:
+            if "response" in expected and exec_res != expected.get("response"):
+                failures += 1
+                print(
+                    f"[FAIL] {fname}/{name}: response mismatch expected {json.dumps(expected.get('response'), sort_keys=True)} got {json.dumps(exec_res, sort_keys=True)}"
+                )
+                continue
+            print(f"[OK] {fname}/{name}")
+            continue
 
         if "success" in expected and exec_res.get("success") != expected.get("success"):
             failures += 1

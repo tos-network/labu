@@ -329,6 +329,10 @@ func loadVectors(root string) ([]NamedVector, error) {
 			}
 		}
 		for _, vec := range suite.TestVectors {
+			// Skip non-execution vectors that use `input.rpc` (handled by the rpc simulator).
+			if vec.Input.RPC != nil && len(vec.Input.RPC) > 0 {
+				continue
+			}
 			out = append(out, NamedVector{
 				File:   filepath.Base(path),
 				Vector: vec,
