@@ -221,7 +221,7 @@ def run_vector(base_url, vec):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--vectors", required=True, help="vectors directory (JSON)")
-    ap.add_argument("--base-url", default=os.environ.get("LABU_BASE_URL", "http://127.0.0.1:8080"))
+    ap.add_argument("--base-url", default=os.environ.get("LABU_BASE_URL", "http://127.0.0.1:8086"))
     ap.add_argument("--dump", action="store_true", help="dump exec_res and post_state for each vector")
     args = ap.parse_args()
 
